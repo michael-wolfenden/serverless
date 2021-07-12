@@ -56,7 +56,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
                     '(ParameterNotFound) when referencing Secrets Manager'
                 ),
                 {
-                  code: 'ParameterNotFound',
+                  code: 'AWS_S_S_M_GET_PARAMETER_PARAMETER_NOT_FOUND',
                 }
               );
             }
@@ -147,6 +147,7 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
         custom: {
           existing: '${ssm:existing}',
           existingWithSplit: '${ssm:existing~split}',
+          existingWithUnrecognized: '${ssm:existing~other}',
           existingList: '${ssm:existingList}',
           existingListWithSplit: '${ssm:existingList~split}',
           secretManager: '${ssm:/aws/reference/secretsmanager/existing}',
@@ -211,6 +212,13 @@ describe('test/unit/lib/configuration/variables/sources/instance-dependent/get-s
       expect(variablesMeta.get('custom\0existingList').error.code).to.equal(
         'VARIABLE_RESOLUTION_ERROR'
       );
+    });
+
+    it('should ignore unrecognized legacy instructions', () => {
+      if (variablesMeta.get('custom\0existingWithUnrecognized')) {
+        throw variablesMeta.get('custom\0existing').error;
+      }
+      expect(configuration.custom.existingWithUnrecognized).to.equal('value');
     });
 
     it('should resolve existing string list param', () => {
